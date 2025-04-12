@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Riel to Words Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        h1 { color: #333; text-align: center; }
+        form { margin: 20px 0; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"] { padding: 5px; width: 200px; }
+        input[type="submit"] { padding: 5px 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        input[type="submit"]:hover { background: #0056b3; }
+        p { margin: 10px 0; }
+        h3 { color: #555; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<h1>Riel to Words Calculator</h1>
+
+<form id="calculatorForm" method="post" action="script/process.php">
+    <label for="riel_amount">Please input your data (Riel):</label>
+    <input type="text" id="riel_amount" name="riel_amount">
+    <input type="submit" value="Convert">
+</form>
+
+<div id="result"></div>
+
+<script>
+    document.getElementById('calculatorForm').addEventListener('submit', function(event) {
+        event.preventDefault(); 
+
+        const formData = new FormData(this);
+        fetch('script/process.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('result').innerHTML = data; 
+            document.getElementById('riel_amount').value = ''; 
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('result').innerHTML = '<p style="color:red;">An error occurred.</p>';
+        });
+    });
+</script>
+
+</body>
+</html>
