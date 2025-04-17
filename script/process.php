@@ -77,56 +77,57 @@ function numberToKhmerWords($number) {
     }
     return trim(implode('', array_reverse($words)));
 }
+
+function processRielAmount($riel_amount_input, &$riel_amount, &$english_words, &$khmer_words, &$usd_amount, &$error_message, &$file_contents) {
+    $riel_amount = 0;
+    $english_words = '';
+    $khmer_words = '';
+    $usd_amount = '';
+    $error_message = '';
+    $file_contents = '';
+
+    if (!is_numeric($riel_amount_input) || $riel_amount_input < 0) {
+        $error_message = "<p style='color:red;'>Error: Please enter a positive number for the Riel amount.</p>";
+        return;
+    }
+
+    $riel_amount = intval($riel_amount_input);
+    $current_date = date('Y-m-d H:i:s');
+    $file = '/tmp/Projects.txt'; // Ensure your web server has write permissions to this location or use a more appropriate path
+    $data_to_write = "Amount: $riel_amount Riel, Date: $current_date\n";
+
+    if (file_put_contents($file, $data_to_write, FILE_APPEND) === false) {
+        $error_message .= "<p style='color:red;'>Error: Failed to write to file.</p>";
+        return;
+    }
+
+    $file_contents = file_get_contents($file);
+    $english_words = numberToEnglishWords($riel_amount);
+    $khmer_words = numberToKhmerWords($riel_amount);
+    $usd_amount = number_format($riel_amount / 4000, 2);
+}
+
+$english_words = $khmer_words = $usd_amount = $error_message = $file_contents = '';
+$riel_amount = 0;
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $riel_amount_input = trim($_POST["riel_amount"] ?? '');
+    processRielAmount($riel_amount_input, $riel_amount, $english_words, $khmer_words, $usd_amount, $error_message, $file_contents);
+
+    $result_html = '';
+    if ($error_message) {
+        $result_html .= $error_message;
+    } else {
+        $result_html .= "<h3>Entered Data: " . number_format($riel_amount) . " Riel</h3>";
+        $result_html .= "<p><strong>a. English:</strong> " . $english_words . " Riel</p>";
+        $result_html .= "<p><strong>b. Khmer:</strong> " . $khmer_words . "រៀល</p>";
+        $result_html .= "<p><strong>c. US Dollars:</strong> $" . $usd_amount . "</p>";
+        if ($file_contents) {
+            $result_html .= "<h3>File Contents (Projects.txt):</h3>";
+            $result_html .= "<pre>" . htmlspecialchars($file_contents) . "</pre>";
+        }
+    }
+
+    echo $result_html; // Send the result back to index.php
+}
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Riel to Words Calculator</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
-        h1 { color: #333; text-align: center; }
-        form { margin: 20px 0; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"] { padding: 5px; width: 200px; }
-        input[type="submit"] { padding: 5px 10px; background: #007bff; color: white; border: none; cursor: pointer; }
-        input[type="submit"]:hover { background: #0056b3; }
-        p { margin: 10px 0; }
-        h3 { color: #555; }
-        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-<h1>Riel to Words Calculator</h1>
-
-<form id="calculatorForm">
-    <label for="riel_amount">Please input your data (Riel):</label>
-    <input type="text" id="riel_amount" name="riel_amount">
-    <input type="submit" value="Convert">
-</form>
-
-<div id="result"></div>
-
-<script>
-    document.getElementById('calculatorForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const formData = new FormData(this);
-        fetch('script/process.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('result').innerHTML = data;
-            document.getElementById('riel_amount').value = '';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('result').innerHTML = '<p style="color:red;">An error occurred.</p>';
-        });
-    });
-</script>
-
-</body>
-</html>
