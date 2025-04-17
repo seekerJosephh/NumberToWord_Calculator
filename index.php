@@ -164,7 +164,7 @@ function processRielAmount($riel_amount_input, &$riel_amount, &$english_words, &
 
 <?php
 
-include 'config.php';
+
 
 $english_words = $khmer_words = $usd_amount = $error_message = $file_contents = '';
 $riel_amount = 0;
